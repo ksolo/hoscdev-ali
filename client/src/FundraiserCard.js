@@ -127,13 +127,11 @@ const FundraiserCard = (props) => {
       const currentUser = window.ethereum.selectedAddress;
 
       const userDonations = await instance.methods.myDonations().call({ from: currentUser })
-      console.log(userDonations)
       setUserDonations(userDonations)
 
-      const isUser = accounts[0]
-      const isOwner = await instance.methods.owner().call()
-
-      if (isOwner === accounts[0]) {
+      let isOwner = await instance.methods.owner().call()
+      isOwner = isOwner.toLowerCase();
+      if (isOwner === currentUser) {
         setIsOwner(true)
       }
     }
@@ -146,7 +144,6 @@ const FundraiserCard = (props) => {
   }
 
   window.ethereum.on('accountsChanged', function (accounts) {
-    console.log("test")
     window.location.reload()
   })
 
@@ -169,6 +166,7 @@ const FundraiserCard = (props) => {
       value: donation,
       gas: 650000
     })
+
     setOpen(false);
   }
 
@@ -197,7 +195,7 @@ const FundraiserCard = (props) => {
 
   const withdrawalFunds = async () => {
     await contract.methods.withdraw().send({
-      from: accounts[0],
+      from: window.ethereum.selectedAddress,
     })
 
     alert('Funds Withdrawn!')
@@ -205,7 +203,7 @@ const FundraiserCard = (props) => {
 
   const setBeneficiary = async () => {
     await contract.methods.setBeneficiary(beneficiary).send({
-      from: accounts[0],
+      from: window.ethereum.selectedAddress,
     })
 
     alert(`Fundraiser Beneficiary Changed`)

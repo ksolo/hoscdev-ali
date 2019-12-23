@@ -70,16 +70,15 @@ const NewFundraiser = () => {
     const imageURL = image
     const url = website
     const beneficiary = address
-    const currentUser = await web3.currentProvider
+    const currentUser = window.ethereum.selectedAddress
 
-    await contract.methods.createFundraiser(
+    const tx = await contract.methods.createFundraiser(
       name,
       url,
       imageURL,
       description,
       beneficiary
     ).send({ from: currentUser })
-
     alert('Successfully created fundraiser')
   }
 
