@@ -21,14 +21,14 @@ import InputLabel from '@material-ui/core/InputLabel';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 
 import getWeb3 from "./utils/getWeb3";
-import FundraiserContract from "./contracts/FundraiserFactory.json";
+import FundraiserContract from "./contracts/Fundraiser.json";
 import Web3 from 'web3'
 
 import { Link } from 'react-router-dom'
 
 const cc = require('cryptocompare')
 
-const getModalStyle =() => {
+const getModalStyle = () => {
   const top = 50;
   const left = 50;
 
@@ -67,20 +67,20 @@ const useStyles = makeStyles(theme => ({
 const FundraiserCard = (props) => {
   const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'))
 
-  const [ contract, setContract] = useState(null)
-  const [ accounts, setAccounts ] = useState(null)
-  const [ fund, setFundraiser ] = useState(null)
-  const [ fundName, setFundname ] = useState(null)
-  const [ description, setDescription ] = useState(null)
-  const [ totalDonations, setTotalDonations ] = useState(null)
-  const [ imageURL, setImageURL ] = useState(null)
-  const [ url, setURL ] = useState(null)
-  const [ open, setOpen] = React.useState(false);
-  const [ donationAmount, setDonationAmount] = useState(null)
-  const [ exchangeRate, setExchangeRate ] = useState(null)
-  const [ userDonations, setUserDonations ] = useState(null)
-  const [ isOwner, setIsOwner ] = useState(false)
-  const [ beneficiary, setNewBeneficiary ] = useState('')
+  const [contract, setContract] = useState(null)
+  const [accounts, setAccounts] = useState(null)
+  const [fund, setFundraiser] = useState(null)
+  const [fundName, setFundname] = useState(null)
+  const [description, setDescription] = useState(null)
+  const [totalDonations, setTotalDonations] = useState(null)
+  const [imageURL, setImageURL] = useState(null)
+  const [url, setURL] = useState(null)
+  const [open, setOpen] = React.useState(false);
+  const [donationAmount, setDonationAmount] = useState(null)
+  const [exchangeRate, setExchangeRate] = useState(null)
+  const [userDonations, setUserDonations] = useState(null)
+  const [isOwner, setIsOwner] = useState(false)
+  const [beneficiary, setNewBeneficiary] = useState('')
 
   const ethAmount = (donationAmount / exchangeRate || 0).toFixed(4)
 
@@ -124,7 +124,9 @@ const FundraiserCard = (props) => {
       setImageURL(imageURL)
       setURL(url)
 
-      const userDonations = await instance.methods.myDonations().call({ from: accounts[0]})
+      const currentUser = window.ethereum.selectedAddress;
+
+      const userDonations = await instance.methods.myDonations().call({ from: currentUser })
       console.log(userDonations)
       setUserDonations(userDonations)
 
@@ -135,7 +137,7 @@ const FundraiserCard = (props) => {
         setIsOwner(true)
       }
     }
-    catch(error) {
+    catch (error) {
       alert(
         `Failed to load web3, accounts, or contract. Check console for details.`,
       );
@@ -144,6 +146,7 @@ const FundraiserCard = (props) => {
   }
 
   window.ethereum.on('accountsChanged', function (accounts) {
+    console.log("test")
     window.location.reload()
   })
 
@@ -156,13 +159,13 @@ const FundraiserCard = (props) => {
   };
 
   const submitFunds = async () => {
-    const fundraisercontract = contract
     const ethRate = exchangeRate
     const ethTotal = donationAmount / ethRate
     const donation = web3.utils.toWei(ethTotal.toString())
+    const from = window.ethereum.selectedAddress
 
     await contract.methods.donate().send({
-      from: accounts[0],
+      from: from,
       value: donation,
       gas: 650000
     })
@@ -171,7 +174,7 @@ const FundraiserCard = (props) => {
 
   const renderDonationsList = () => {
     var donations = userDonations
-    if (donations === null) {return null}
+    if (donations === null) { return null }
 
     const totalDonations = donations.values.length
     let donationList = []
@@ -180,7 +183,7 @@ const FundraiserCard = (props) => {
       const ethAmount = web3.utils.fromWei(donations.values[i])
       const userDonation = exchangeRate * ethAmount
       const donationDate = donations.dates[i]
-      donationList.push({ donationAmount: userDonation.toFixed(2), date: donationDate})
+      donationList.push({ donationAmount: userDonation.toFixed(2), date: donationDate })
     }
 
     return donationList.map((donation) => {
@@ -210,99 +213,99 @@ const FundraiserCard = (props) => {
 
   return (
     <div className="fundraiser-card-container">
-    <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-    <DialogTitle id="form-dialog-title">
-      Donate to {fundName}
-    </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          <img src={imageURL} width='200px' height='200px' />
-          <p>{description}</p>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">
+          Donate to {fundName}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <img src={imageURL} width='200px' height='200px' />
+            <p>{description}</p>
 
-          <div className="donation-input-container">
-            <FormControl className={classes.formControl}>
-              $
-              <Input
-                id="component-simple"
-                value={donationAmount}
-                onChange={(e) => setDonationAmount(e.target.value)}
-                placeholder="0.00"
-               />
-            </FormControl>
-
-            <p>Eth: {ethAmount}</p>
-          </div>
-
-          <Button onClick={submitFunds} variant="contained" color="primary">
-            Donate
-          </Button>
-
-          <div>
-            <h3>My donations</h3>
-            {renderDonationsList()}
-          </div>
-
-
-          {isOwner &&
-            <div>
+            <div className="donation-input-container">
               <FormControl className={classes.formControl}>
-                Beneficiary:
-                <Input
-                  value={beneficiary}
-                  onChange={(e) => setNewBeneficiary(e.target.value)}
-                  placeholder="Set Beneficiary"
-                 />
+                $
+              <Input
+                  id="component-simple"
+                  value={donationAmount}
+                  onChange={(e) => setDonationAmount(e.target.value)}
+                  placeholder="0.00"
+                />
               </FormControl>
 
-              <Button variant="contained" style={{ marginTop: 20 }} color="primary" onClick={setBeneficiary}>
-                Set Beneficiary
-              </Button>
+              <p>Eth: {ethAmount}</p>
             </div>
-          }
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancel
-        </Button>
-        {isOwner &&
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={withdrawalFunds}
-          >
-            Withdrawal
-          </Button>
-        }
-      </DialogActions>
-    </Dialog>
 
-    <Card className={classes.card} onClick={handleOpen}>
-      <CardActionArea>
-        <CardMedia
-          className={classes.media}
-          image={imageURL}
-          title="Fundraiser Image"
-        />
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="h2">
-            {fundName}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" component="p">
-            <p>{description}</p>
-            <p>Total Donations: ${totalDonations}</p>
-          </Typography>
-        </CardContent>
-      </CardActionArea>
-      <CardActions>
-        <Button
-          onClick={handleOpen}
-          variant="contained"
-          className={classes.button}>
-          View More
+            <Button onClick={submitFunds} variant="contained" color="primary">
+              Donate
+          </Button>
+
+            <div>
+              <h3>My donations</h3>
+              {renderDonationsList()}
+            </div>
+
+
+            {isOwner &&
+              <div>
+                <FormControl className={classes.formControl}>
+                  Beneficiary:
+                <Input
+                    value={beneficiary}
+                    onChange={(e) => setNewBeneficiary(e.target.value)}
+                    placeholder="Set Beneficiary"
+                  />
+                </FormControl>
+
+                <Button variant="contained" style={{ marginTop: 20 }} color="primary" onClick={setBeneficiary}>
+                  Set Beneficiary
+              </Button>
+              </div>
+            }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Cancel
         </Button>
-      </CardActions>
-    </Card>
+          {isOwner &&
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={withdrawalFunds}
+            >
+              Withdrawal
+          </Button>
+          }
+        </DialogActions>
+      </Dialog>
+
+      <Card className={classes.card} onClick={handleOpen}>
+        <CardActionArea>
+          <CardMedia
+            className={classes.media}
+            image={imageURL}
+            title="Fundraiser Image"
+          />
+          <CardContent>
+            <Typography gutterBottom variant="h5" component="h2">
+              {fundName}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" component="p">
+              <p>{description}</p>
+              <p>Total Donations: ${totalDonations}</p>
+            </Typography>
+          </CardContent>
+        </CardActionArea>
+        <CardActions>
+          <Button
+            onClick={handleOpen}
+            variant="contained"
+            className={classes.button}>
+            View More
+        </Button>
+        </CardActions>
+      </Card>
     </div>
   )
 }

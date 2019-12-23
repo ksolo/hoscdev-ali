@@ -27,61 +27,61 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const NewFundraiser = () => {
-const [labelWidth, setLabelWidth] = React.useState(0);
-const labelRef = React.useRef(null);
-const classes = useStyles();
-const [ web3, setWeb3 ] = useState(null)
+  const [labelWidth, setLabelWidth] = React.useState(0);
+  const labelRef = React.useRef(null);
+  const classes = useStyles();
+  const [web3, setWeb3] = useState(null)
 
-useEffect(() => {
-  const init = async() => {
-    try {
-      const web3 = await getWeb3();
-      const networkId = await web3.eth.net.getId();
-      const deployedNetwork = FactoryContract.networks[networkId];
-      const accounts = await web3.eth.getAccounts();
-      const instance = new web3.eth.Contract(
-        FactoryContract.abi,
-        deployedNetwork && deployedNetwork.address,
-      );
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const web3 = await getWeb3();
+        const networkId = await web3.eth.net.getId();
+        const deployedNetwork = FactoryContract.networks[networkId];
+        const accounts = await web3.eth.getAccounts();
+        const instance = new web3.eth.Contract(
+          FactoryContract.abi,
+          deployedNetwork && deployedNetwork.address,
+        );
 
-      setWeb3(web3)
-      setContract(instance)
-      setAccounts(accounts)
+        setWeb3(web3)
+        setContract(instance)
+        setAccounts(accounts)
 
-    } catch(error) {
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`,
-      );
-      console.error(error);
+      } catch (error) {
+        alert(
+          `Failed to load web3, accounts, or contract. Check console for details.`,
+        );
+        console.error(error);
+      }
     }
+    init();
+  }, []);
+
+  const [name, setFundraiserName] = useState(null)
+  const [website, setFundraiserWebsite] = useState(null)
+  const [description, setFundraiserDescription] = useState(null)
+  const [image, setImage] = useState(null)
+  const [address, setAddress] = useState(null)
+  const [contract, setContract] = useState(null)
+  const [accounts, setAccounts] = useState(null)
+
+  const handleSubmit = async () => {
+    const imageURL = image
+    const url = website
+    const beneficiary = address
+    const currentUser = await web3.currentProvider
+
+    await contract.methods.createFundraiser(
+      name,
+      url,
+      imageURL,
+      description,
+      beneficiary
+    ).send({ from: currentUser })
+
+    alert('Successfully created fundraiser')
   }
-  init();
-}, []);
-
-const [ name, setFundraiserName ] = useState(null)
-const [ website, setFundraiserWebsite ] = useState(null)
-const [ description, setFundraiserDescription ] = useState(null)
-const [ image, setImage ] = useState(null)
-const [ address, setAddress ] = useState(null)
-const [ contract, setContract] = useState(null)
-const [ accounts, setAccounts ] = useState(null)
-
-const handleSubmit = async () => {
-  const imageURL = image
-  const url = website
-  const beneficiary = address
-  const currentUser = await web3.currentProvider.selectedAddress
-
-  const transaction = await contract.methods.createFundraiser(
-    name,
-    url,
-    imageURL,
-    description,
-    beneficiary
-  ).send({ from: accounts[0] })
-
-  alert('Successfully created fundraiser')
-}
 
   return (
     <div className="create-fundraiser-container">
