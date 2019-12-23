@@ -1,8 +1,7 @@
 pragma solidity >0.4.23 <0.7.0;
 
-import "../client/node_modules/@openzeppelin/contracts/ownership/Ownable.sol";
-import "../client/node_modules/@openzeppelin/contracts/math/SafeMath.sol";
-//import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract Fundraiser is Ownable {
 
@@ -35,8 +34,8 @@ contract Fundraiser is Ownable {
         string memory _description,
         address payable _beneficiary,
         address _custodian
-    ) 
-        public 
+    )
+        public
     {
         name = _name;
         url = _url;
@@ -52,7 +51,7 @@ contract Fundraiser is Ownable {
 
     function myDonationsCount() public view returns(uint256) {
         return _donations[msg.sender].length;
-    } 
+    }
 
     function donate() public payable {
         Donation memory donation = Donation({
@@ -86,9 +85,9 @@ contract Fundraiser is Ownable {
 
     function withdraw() public onlyOwner {
         uint256 balance = address(this).balance;
-        (bool success, ) = beneficiary.call.value(balance)(""); 
+        (bool success, ) = beneficiary.call.value(balance)("");
         require(success, "Error: Transfer failed.");
-        
+
         emit Withdraw(balance);
     }
 
